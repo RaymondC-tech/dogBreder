@@ -1,4 +1,6 @@
 package dogapi;
+import dogapi.BreedFetcher.BreedNotFoundException;
+
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -23,13 +25,40 @@ public class DogApiBreedFetcher implements BreedFetcher {
      * @return list of sub breeds for the given breed
      * @throws BreedNotFoundException if the breed does not exist (or if the API call fails for any reason)
      */
+
     @Override
-    public List<String> getSubBreeds(String breed) {
+    public List<String> getSubBreeds(String breed) throws BreedNotFoundException {
         // TODO Task 1: Complete this method based on its provided documentation
         //      and the documentation for the dog.ceo API. You may find it helpful
         //      to refer to the examples of using OkHttpClient from the last lab,
         //      as well as the code for parsing JSON responses.
         // return statement included so that the starter code can compile and run.
-        return new ArrayList<>();
+        String url = "https://dog.ceo/api/breed/" + breed + "/list";
+        Request request = new Request.Builder().url(url).build();
+        try {
+            Response response = client.newCall(request).execute();
+
+            if (!response.isSuccessful() || response.body() == null){
+                throw new BreedNotFoundException(breed);
+
+            }
+            String body = response.body().string();
+            JSONObject result = new JSONObject(body);
+            JSONArray message = result.getJSONArray("message");
+            // String[] arr1 = new String[message.length()];
+            // for (int i = 0; i < message.length(); i ++) {
+            //     arr1[i] = message.getString(i);
+            // }
+            // return arr1;
+            ArrayList<String> resultList = new ArrayList<>();
+            for (int i = 0; i < message.length(); i ++) {
+                resultList.add(message.getString(i));
+            }
+            return resultList;
+
+        } catch (Exception e) {
+            throw new BreedNotFoundException(breed);
+        }
+        
     }
 }
